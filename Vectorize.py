@@ -1,29 +1,31 @@
-import gensim
 import numpy as np
-from sklearn import feature_extraction
+import gensim
+import sklearn
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import ExtraTreesClassifier
 
 # For testing purposes we import Networking, with title Baseball
-import Networking
+from Networking import *
 
 n = Networking()
-n.fetch_parsed_article("Baseball")
+article = n.fetch_parsed_article("Baseball")
 
 # This class will take in a list of tokenized words and return
 # the vectorized modle using Gensim word2vec
 class Vectorize:
 
     def __init__(self, tokens):
-        model = gensim.models.word2vec(tokens, size=100)
+        model = gensim.models.Word2Vec(tokens, size=100)
         self.w2v = dict(zip(model.wv.index2word, model.wv.syn0))
         self.word2weight = None
-        self.dim = len(self.w2v.itervalues().next())
+        self.dim = len(self.w2v.items())
 
     def fit(self, x, y):
-        tfidf = TfidfVectorizer(analyzer=lambda x: x)
+        tfidf = sklearn.feature_extraction.text.TfidfVectorizer(analyzer=lambda x: x)
         tfidf.fit(x)
 
         max_idf = max(tfidf.idf_)
-        self.word2weight = defaultdict(
+        self.word2weight = sklearn.feature_extraction.text.defaultdict(
             lambda: max_idf,
             [(w, tfidf.idf_[i]) for w, i in tfidf.vocabulary_.items()])
         return self
@@ -37,3 +39,8 @@ class Vectorize:
 
 
 
+# Testing
+v = Vectorize(article.words)
+test = [['baseball'], ['hat'], ['yankees']]
+
+# todo: look into word vector produced 
